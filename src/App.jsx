@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { Analytics } from "@vercel/analytics/react";
 
 import { InlineSlider } from "@/components/motion/range-slider-inline";
 import { DEFAULT_VALUES, RADIUS_STOPS, nextValues, needsExpandedPreview, previewScale } from "@/lib/radius";
@@ -400,6 +401,7 @@ export default function App() {
           {feedbackError && <p role="status">Couldn’t copy. Email: samlimby2@gmail.com</p>}
         </footer>
       </main>
+      <Analytics />
     </>
   );
 }
