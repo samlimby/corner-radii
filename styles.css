@@ -982,7 +982,9 @@ h2 {
     width: 100%;
   }
 
-  .radius-controls {
+  /* Expansion must not override centering in the mobile flex layout. */
+  .radius-controls,
+  .workspace.is-preview-expanded .radius-controls {
     width: calc(100% - 48px);
     align-self: center;
   }

@@ -392,7 +392,7 @@ export default function App() {
               aria-label="Copy feedback email address samlimby2@gmail.com"
               onClick={copyFeedbackEmail}
             >
-              <span aria-live="polite">{feedbackCopied ? "Email changed!" : "Feedback"}</span>
+              <span aria-live="polite">{feedbackCopied ? "email copied" : "Feedback"}</span>
             </button>
             <span className="site-footer__separator" aria-hidden="true">•</span>
             <span>Updated Sep 2026</span>
