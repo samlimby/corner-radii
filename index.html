@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="An interactive tool for calculating visually consistent nested border radii."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Corner Radii" />
+    <meta
+      property="og:description"
+      content="A tool to calculate perfect nested border radii."
+    />
+    <meta property="og:image" content="/link-preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="600" />
+    <meta
+      property="og:image:alt"
+      content="Corner Radii tool with a nested-radius measurement preview"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Corner Radii" />
+    <meta
+      name="twitter:description"
+      content="A tool to calculate perfect nested border radii."
+    />
+    <meta name="twitter:image" content="/link-preview.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Corner Radii tool with a nested-radius measurement preview"
+    />
+    <title>Corner Radii</title>
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("corner-radii-theme");
+        const theme = (savedTheme === "light" || savedTheme === "dark" ? savedTheme : null) ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.dataset.redlines =
+          localStorage.getItem("corner-radii-redlines") || "off";
+      } catch {}
+    </script>
+    <link rel="icon" type="image/png" sizes="160x160" href="/favicon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
