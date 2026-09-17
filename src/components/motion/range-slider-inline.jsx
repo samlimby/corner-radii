@@ -173,11 +173,11 @@ export function InlineSlider({
     if (dragFrame.current !== null) cancelAnimationFrame(dragFrame.current);
   }, [handleX]);
   const fillRight = useTransform(handleX, (x) =>
-    x >= endX ? geometry.width - 2 : x + 8,
+    x >= endX ? geometry.width : x + 8,
   );
-  // Slide a fixed-size fill inside the inset clipping window. The labels and
+  // Slide a fixed-size fill inside the clipping window. The labels and
   // dots stay above it, and only transforms animate.
-  const fillX = useTransform(fillRight, (right) => right - geometry.width + 2);
+  const fillX = useTransform(fillRight, (right) => right - geometry.width);
   // Part progressively over six pixels at each text edge instead of
   // toggling the stem on/off in a single pointer frame. The thumb uses the
   // same two-dot treatment across both the label and numeric readout.
@@ -201,11 +201,9 @@ export function InlineSlider({
   const overlapsText = (x, bounds) =>
     x + 2 >= bounds.start && x - 2 <= bounds.end;
   const ticks = showTicks
-    ? (Array.isArray(stopValues)
-      ? stops.slice(1, -1).map((stop) => stop.x)
-      : stops
-        .map((stop) => stop.x)
-        .filter((x) => !overlapsText(x, labelBounds) && !overlapsText(x, readoutBounds)))
+    ? stops
+      .map((stop) => stop.x)
+      .filter((x) => !overlapsText(x, labelBounds) && !overlapsText(x, readoutBounds))
     : [];
 
   const queueDragCommit = (value) => {
@@ -299,7 +297,7 @@ export function InlineSlider({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-[2px] inset-y-0 overflow-hidden rounded-lg"
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
       >
         <motion.div
           className="absolute inset-0 rounded-lg bg-foreground/15"
@@ -341,9 +339,9 @@ export function InlineSlider({
         className="pointer-events-none absolute left-0 top-2 h-6 w-1 text-foreground"
         style={{ x: handleX }}
       >
-        <motion.span className="absolute top-0 size-1 rounded-full bg-current" style={{ y: reduce ? 0 : capTop }} />
-        <motion.span className="absolute inset-y-0 w-1 rounded-full bg-current" style={{ opacity: stemOpacity }} />
-        <motion.span className="absolute bottom-0 size-1 rounded-full bg-current" style={{ y: reduce ? 0 : capBottom }} />
+        <motion.span className="absolute top-0 size-1 rounded-[4px] bg-current" style={{ y: reduce ? 0 : capTop }} />
+        <motion.span className="absolute inset-y-0 w-1 rounded-[4px] bg-current" style={{ opacity: stemOpacity }} />
+        <motion.span className="absolute bottom-0 size-1 rounded-[4px] bg-current" style={{ y: reduce ? 0 : capBottom }} />
       </motion.div>
       <button
         type="button"
