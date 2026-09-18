@@ -366,14 +366,14 @@ export default function App() {
         <section className="radius-controls" aria-labelledby="controls-title">
           <h2 id="controls-title">Radius Controls</h2>
           <form className="controls-panel" onSubmit={(event) => event.preventDefault()}>
-            <InlineSlider className="range-control" label="Outer" value={outer} min={0} max={48} step={4} stops={RADIUS_STOPS} onValueChange={(value) => updateValue("outer", value)} onValueCommit={(value) => commitSliderValue("outer", value)} />
-            <InlineSlider className="range-control" label="Inner" value={inner} min={0} max={48} step={4} stops={RADIUS_STOPS} onValueChange={(value) => updateValue("inner", value)} onValueCommit={(value) => commitSliderValue("inner", value)} />
+            <InlineSlider className="range-control" label="Outer" value={outer} min={0} max={48} step={4} stops={RADIUS_STOPS} linearStops onValueChange={(value) => updateValue("outer", value)} onValueCommit={(value) => commitSliderValue("outer", value)} />
+            <InlineSlider className="range-control" label="Inner" value={inner} min={0} max={48} step={4} stops={RADIUS_STOPS} linearStops onValueChange={(value) => updateValue("inner", value)} onValueCommit={(value) => commitSliderValue("inner", value)} />
             <div className="controls-panel__divider" aria-hidden="true">
               <span>Sizing</span>
               <span className="controls-panel__rule" />
             </div>
-            <InlineSlider className="range-control" label="Padding" value={padding} min={0} max={100} step={4} onValueChange={(value) => updateValue("padding", value)} onValueCommit={(value) => commitSliderValue("padding", value)} />
-            <InlineSlider className="range-control" label="Size" value={size} min={160} max={360} step={4} onValueChange={(value) => updateValue("size", value)} onValueCommit={(value) => commitSliderValue("size", value)} />
+            <InlineSlider className="range-control" label="Padding" value={padding} min={0} max={100} step={1} continuous showTicks={false} onValueChange={(value) => updateValue("padding", value)} onValueCommit={(value) => commitSliderValue("padding", value)} />
+            <InlineSlider className="range-control" label="Size" value={size} min={160} max={360} step={1} continuous showTicks={false} onValueChange={(value) => updateValue("size", value)} onValueCommit={(value) => commitSliderValue("size", value)} />
           </form>
           <CalculationDisclosure outer={outer} padding={padding} inner={inner} />
         </section>

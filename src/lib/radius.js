@@ -1,5 +1,5 @@
 // The preview has no layout border: padding is the entire inset between edges.
-export const RADIUS_STOPS = Object.freeze([4, 8, 12, 16, 20, 24, 28, 32, 36, 40]);
+export const RADIUS_STOPS = Object.freeze([4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]);
 export const DEFAULT_VALUES = Object.freeze({ outer: 40, inner: 20, padding: 20, size: 300 });
 export const LIMITS = Object.freeze({ outer: [0, 48], inner: [0, 48], padding: [0, 100], size: [160, 360] });
 
@@ -10,7 +10,8 @@ export function innerRadius(outer, padding) {
 export function nextValues(current, name, value) {
   if (!Object.hasOwn(LIMITS, name) || !Number.isFinite(value)) return current;
   const [min, max] = LIMITS[name];
-  const next = Math.min(max, Math.max(min, Math.round(value / 4) * 4));
+  const step = name === 'outer' || name === 'inner' ? 4 : 1;
+  const next = Math.min(max, Math.max(min, Math.round(value / step) * step));
   if (name === 'inner') {
     const inner = Math.min(current.outer, next);
     // A zero radius does not uniquely determine padding. Keep the existing

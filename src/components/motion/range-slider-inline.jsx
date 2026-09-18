@@ -19,6 +19,10 @@ const STOP_COUNT = 10;
 const HANDLE_START = 8;
 const HANDLE_END_INSET = 12;
 const TEXT_INSET = 20;
+const MIN_TICK_LABEL_WIDTH = 40;
+const MORPH_DISTANCE = 4;
+const MORPH_GAP = 4;
+const THUMB_WIDTH = 4;
 // Matches RangeSlider's bouncy grab and release feedback.
 const SPRING_BOUNCY = {
   type: "spring",
@@ -53,6 +57,8 @@ export function InlineSlider({
   label,
   format = String,
   showTicks = true,
+  linearStops = false,
+  continuous = false,
   stops: stopValues,
   className,
   ...options
@@ -117,6 +123,7 @@ export function InlineSlider({
   };
   const endX = Math.max(HANDLE_START, geometry.width - HANDLE_END_INSET);
   const stops = useMemo(() => {
+    if (continuous) return [{ value: min, x: HANDLE_START }, { value: max, x: endX }];
     const explicitValues = Array.isArray(stopValues)
       ? [...new Set(stopValues
         .map((value) => snapSliderValue(value, min, max, step))
@@ -130,7 +137,15 @@ export function InlineSlider({
       ))];
 
     if (explicitValues) {
-      const tickStart = Math.min(endX, labelBounds.end + 12);
+      if (linearStops) {
+        return values.map((value) => ({
+          value,
+          x: max > min
+            ? HANDLE_START + ((value - min) / (max - min)) * (endX - HANDLE_START)
+            : HANDLE_START,
+        }));
+      }
+      const tickStart = Math.min(endX, TEXT_INSET + Math.max(geometry.labelWidth, MIN_TICK_LABEL_WIDTH) + 12);
       const tickEnd = Math.max(tickStart, Math.min(endX, readoutBounds.start - 12));
       return values.map((value, index) => {
         if (index === 0) return { value, x: HANDLE_START };
@@ -151,7 +166,7 @@ export function InlineSlider({
         ? HANDLE_START
         : HANDLE_START + (index / (values.length - 1)) * (endX - HANDLE_START),
     }));
-  }, [endX, labelBounds.end, max, min, readoutBounds.start, step, stopValues]);
+  }, [continuous, endX, geometry.labelWidth, linearStops, max, min, readoutBounds.start, step, stopValues]);
   const restingX = mapBetweenStops(stops, current, "value", "x");
   // One motion value owns the thumb for the entire gesture. Pointer movement
   // writes pixels directly; only release/click/keyboard changes use a spring.
@@ -178,14 +193,14 @@ export function InlineSlider({
   // Slide a fixed-size fill inside the clipping window. The labels and
   // dots stay above it, and only transforms animate.
   const fillX = useTransform(fillRight, (right) => right - geometry.width);
-  // Part progressively over six pixels at each text edge instead of
-  // toggling the stem on/off in a single pointer frame. The thumb uses the
-  // same two-dot treatment across both the label and numeric readout.
+  // Start parting before the thumb touches text and finish before its leading
+  // edge reaches the first letter. Keep the two dots until the thumb clears
+  // the far edge, including when crossing the label in reverse.
   const split = useTransform(handleX, (x) => {
     const overlap = (start, end) => Math.max(0, Math.min(
       1,
-      (x + 4 - start) / 6,
-      (end - x) / 6,
+      (x + THUMB_WIDTH + MORPH_GAP + MORPH_DISTANCE - start) / MORPH_DISTANCE,
+      (end + MORPH_GAP + MORPH_DISTANCE - x) / MORPH_DISTANCE,
     ));
     return Math.max(
       overlap(TEXT_INSET, TEXT_INSET + geometry.labelWidth),
@@ -233,12 +248,15 @@ export function InlineSlider({
       const x = event.type === "pointerup"
         ? (event.clientX - active.left) * active.scale - active.offset
         : active.x;
-      const stop = nearestStop(stops, x);
+      const value = continuous
+        ? snapSliderValue(mapBetweenStops(stops, x, "x", "value"), min, max, step)
+        : nearestStop(stops, x).value;
+      const targetX = mapBetweenStops(stops, value, "value", "x");
       // Release capture before a committed value can relocate the whole panel.
       releasePointer(event.currentTarget, event.pointerId);
-      settleTo(options.value === undefined ? stop.x : restingX);
-      commit(stop.value);
-      options.onValueCommit?.(stop.value);
+      settleTo(continuous || options.value === undefined ? targetX : restingX);
+      commit(value);
+      options.onValueCommit?.(value);
     } else {
       settleTo(restingX);
     }
@@ -259,7 +277,10 @@ export function InlineSlider({
         // Grabbing the thumb preserves the exact grab point. A track click
         // waits for release, so it glides to a dot without an intermediate jump.
         const offset = Math.abs(pointerX - thumbX - 2) <= 12 ? pointerX - thumbX : 2;
-        gesture.current = { id: event.pointerId, left: rect.left, offset, scale: pointerScale, x: thumbX };
+        gesture.current = {
+          id: event.pointerId, left: rect.left, offset, scale: pointerScale,
+          x: thumbX,
+        };
         setDragging(true);
         handleX.stop();
         cancelDragCommit();
@@ -274,14 +295,13 @@ export function InlineSlider({
           Math.max(HANDLE_START, (event.clientX - active.left) * active.scale - active.offset),
         );
         active.x = x;
-        handleX.set(x);
+        handleX.set(active.x);
         // Use the same piecewise map as the resting stops, so value and
         // position agree throughout the drag.
-        queueDragCommit(
-          Array.isArray(stopValues)
-            ? nearestStop(stops, x).value
-            : mapBetweenStops(stops, x, "x", "value"),
-        );
+        const value = Array.isArray(stopValues)
+          ? nearestStop(stops, x).value
+          : mapBetweenStops(stops, x, "x", "value");
+        queueDragCommit(value);
       }}
       onPointerUp={endGesture}
       onPointerCancel={endGesture}
@@ -327,8 +347,8 @@ export function InlineSlider({
         {ticks.map((left) => (
           <span
             key={left}
-            className="absolute top-1/2 size-1 -translate-y-1/2 rounded-full bg-foreground/25"
-            style={{ left }}
+            className="absolute top-1/2 size-[4px] -translate-y-1/2 rounded-full bg-[var(--dot)]"
+            style={{ left: Math.round(left) }}
           />
         ))}
       </div>
@@ -349,14 +369,14 @@ export function InlineSlider({
         onKeyDown={(event) => {
           if (options.disabled) return;
           const next = {
-            ArrowRight: stops.find((stop) => stop.value > current)?.value ?? max,
-            ArrowUp: stops.find((stop) => stop.value > current)?.value ?? max,
-            ArrowLeft: stops.findLast((stop) => stop.value < current)?.value ?? min,
-            ArrowDown: stops.findLast((stop) => stop.value < current)?.value ?? min,
+            ArrowRight: continuous ? current + step : stops.find((stop) => stop.value > current)?.value ?? max,
+            ArrowUp: continuous ? current + step : stops.find((stop) => stop.value > current)?.value ?? max,
+            ArrowLeft: continuous ? current - step : stops.findLast((stop) => stop.value < current)?.value ?? min,
+            ArrowDown: continuous ? current - step : stops.findLast((stop) => stop.value < current)?.value ?? min,
             Home: min,
             End: max,
-            PageUp: max,
-            PageDown: min,
+            PageUp: continuous ? current + step * 10 : max,
+            PageDown: continuous ? current - step * 10 : min,
           }[event.key];
           if (next !== undefined) {
             event.preventDefault();

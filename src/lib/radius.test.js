@@ -32,19 +32,23 @@ test('inverse slider respects the outer radius and preserves ambiguous zero padd
   assert.deepEqual(nextValues(square,'inner',4), {outer:40, inner:4, padding:36, size:300});
 });
 
-test('updates clamp input, respect 4px steps and reject non-finite values', () => {
+test('updates clamp input, keep sizing values at whole pixels and reject non-finite values', () => {
   for (const name of Object.keys(LIMITS)) {
     for (let value=-30;value<420;value+=0.7) {
       const result=nextValues(DEFAULT_VALUES,name,value);
       for (const [key,[min,max]] of Object.entries(LIMITS)) {
         assert.ok(result[key]>=min && result[key]<=max);
-        assert.equal(result[key]%4,0);
+        assert.equal(result[key]%1,0);
+        if (key === 'outer') assert.equal(result[key]%4,0);
       }
       assert.equal(result.inner,innerRadius(result.outer,result.padding));
     }
     for (const value of [NaN,Infinity,-Infinity,undefined]) assert.equal(nextValues(DEFAULT_VALUES,name,value), DEFAULT_VALUES);
   }
   assert.equal(nextValues(DEFAULT_VALUES,'unexpected',30),DEFAULT_VALUES);
+  assert.deepEqual(nextValues(DEFAULT_VALUES,'padding',21), {outer:40, inner:19, padding:21, size:300});
+  assert.deepEqual(nextValues(DEFAULT_VALUES,'size',201), {outer:40, inner:20, padding:20, size:201});
+  assert.deepEqual(nextValues(DEFAULT_VALUES,'inner',13), {outer:40, inner:12, padding:28, size:300});
 });
 
 test('preview preserves proportions and reserves space for readable redlines', () => {
